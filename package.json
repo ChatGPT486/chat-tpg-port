@@ -1,0 +1,9 @@
+{
+  "name": "chat-tpg-portfolio",
+  "version": "1.0.0",
+  "description": "Chat TPG Creative Portfolio",
+  "engines": { "node": "24.x" },
+  "dependencies": {
+    "cloudinary": "^2.0.0"
+  }
+}
