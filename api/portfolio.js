@@ -1,4 +1,3 @@
-// api/portfolio.js
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
@@ -48,7 +47,12 @@ module.exports = async (req, res) => {
 
   if (req.method === 'DELETE') {
     try {
-      const { id, resourceType } = req.body;
+      const { id, resourceType, adminPassword } = req.body;
+
+      if (adminPassword !== process.env.ADMIN_PASSWORD) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
       if (!id) return res.status(400).json({ error: 'Missing id' });
       await cloudinary.uploader.destroy(id, { resource_type: resourceType || 'image' });
       return res.status(200).json({ success: true });

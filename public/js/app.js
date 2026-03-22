@@ -15,6 +15,17 @@ let stagedFiles    = [];
 let lightboxItems  = [];
 let lightboxIndex  = 0;
 
+// ── ADMIN SESSION ────────────────────────────────────────────
+let adminPassword = null;
+let isAdmin = false;
+
+function promptAdmin() {
+  const pw = prompt('Enter admin password:');
+  if (!pw) return false;
+  adminPassword = pw;
+  isAdmin = true;
+  return true;
+}
 // ── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initCursor();
@@ -191,7 +202,7 @@ window.deleteItem = async function(id, resourceType, e) {
     const res = await fetch('/api/portfolio', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, resourceType }),
+     body: JSON.stringify({ id, resourceType, adminPassword }),
     });
     if (!res.ok) throw new Error('Delete failed');
     portfolioItems = portfolioItems.filter(item => item.id !== id);
@@ -214,7 +225,12 @@ function initUploadModal() {
   const progressFill = document.getElementById('progress-fill');
   const progressText = document.getElementById('progress-text');
 
-  openBtn.addEventListener('click', () => modal.classList.add('open'));
+  openBtn.addEventListener('click', () => {
+  if (!isAdmin) {
+    if (!promptAdmin()) return;
+  }
+  modal.classList.add('open');
+});
   closeBtn.addEventListener('click', closeModal);
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
@@ -274,12 +290,13 @@ function initUploadModal() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            dataUrl,
-            title,
-            category,
-            description: desc,
-            fileType: file.type,
-          }),
+  dataUrl,
+  title,
+  category,
+  description: desc,
+  fileType: file.type,
+  adminPassword,
+}),
         });
 
         if (!res.ok) {

@@ -15,7 +15,12 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { dataUrl, title, category, description, fileType } = req.body;
+    const { dataUrl, title, category, description, fileType, adminPassword } = req.body;
+
+    if (adminPassword !== process.env.ADMIN_PASSWORD) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     if (!dataUrl) return res.status(400).json({ error: 'Missing file data' });
 
     const resourceType = fileType && fileType.startsWith('video') ? 'video' : 'image';
@@ -26,17 +31,17 @@ module.exports = async (req, res) => {
     });
 
     return res.status(200).json({
-      id:          result.public_id,
-      url:         result.secure_url,
+      id:           result.public_id,
+      url:          result.secure_url,
       thumbnailUrl: resourceType === 'video'
         ? result.secure_url.replace('/video/upload/', '/video/upload/so_0/').replace(/\.\w+$/, '.jpg')
         : result.secure_url,
-      title:       title || 'Untitled',
-      category:    category || 'graphics',
-      description: description || '',
+      title:        title || 'Untitled',
+      category:     category || 'graphics',
+      description:  description || '',
       fileType,
       resourceType,
-      createdAt:   result.created_at,
+      createdAt:    result.created_at,
     });
 
   } catch (err) {
