@@ -1,4 +1,3 @@
-// api/upload.js
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
@@ -17,31 +16,27 @@ module.exports = async (req, res) => {
 
   try {
     const { dataUrl, title, category, description, fileType } = req.body;
-
-    if (!dataUrl || !title || !category) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
+    if (!dataUrl) return res.status(400).json({ error: 'Missing file data' });
 
     const resourceType = fileType && fileType.startsWith('video') ? 'video' : 'image';
 
     const result = await cloudinary.uploader.upload(dataUrl, {
       folder: 'chat-tpg-portfolio',
       resource_type: resourceType,
-      tags: ['portfolio', category, encodeURIComponent(title)],
     });
 
     return res.status(200).json({
-      id:           result.public_id,
-      url:          result.secure_url,
+      id:          result.public_id,
+      url:         result.secure_url,
       thumbnailUrl: resourceType === 'video'
-        ? `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload/so_0/${result.public_id}.jpg`
+        ? result.secure_url.replace('/video/upload/', '/video/upload/so_0/').replace(/\.\w+$/, '.jpg')
         : result.secure_url,
-      title,
-      category,
-      description:  description || '',
+      title:       title || 'Untitled',
+      category:    category || 'graphics',
+      description: description || '',
       fileType,
       resourceType,
-      createdAt:    result.created_at,
+      createdAt:   result.created_at,
     });
 
   } catch (err) {
