@@ -1,7 +1,4 @@
 // api/upload.js
-// Handles file uploads → Cloudinary
-// Stores metadata as a Cloudinary "context" tag so no DB is needed
-
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
@@ -10,7 +7,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Vercel doesn't support multipart natively — client sends base64
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -23,37 +19,29 @@ module.exports = async (req, res) => {
     const { dataUrl, title, category, description, fileType } = req.body;
 
     if (!dataUrl || !title || !category) {
-      return res.status(400).json({ error: 'Missing required fields: dataUrl, title, category' });
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Determine resource type
     const resourceType = fileType && fileType.startsWith('video') ? 'video' : 'image';
 
-    // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(dataUrl, {
       folder: 'chat-tpg-portfolio',
       resource_type: resourceType,
-      // Store metadata as context (no DB needed!)
-      context: {
-        title: title,
-        category: category,
-        description: description || '',
-      },
-      tags: ['portfolio', category],
+      tags: ['portfolio', category, encodeURIComponent(title)],
     });
 
     return res.status(200).json({
-      id:          result.public_id,
-      url:         result.secure_url,
+      id:           result.public_id,
+      url:          result.secure_url,
       thumbnailUrl: resourceType === 'video'
-        ? cloudinary.url(result.public_id, { resource_type: 'video', format: 'jpg', transformation: [{ width: 600, crop: 'fill' }] })
+        ? `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload/so_0/${result.public_id}.jpg`
         : result.secure_url,
       title,
       category,
-      description: description || '',
+      description:  description || '',
       fileType,
       resourceType,
-      createdAt: result.created_at,
+      createdAt:    result.created_at,
     });
 
   } catch (err) {
