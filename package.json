@@ -1,0 +1,16 @@
+{
+  "name": "chat-tpg-portfolio",
+  "version": "2.0.0",
+  "description": "Chat TPG Creative Portfolio — self-hosted Express server",
+  "main": "server.js",
+  "engines": { "node": ">=18.x" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cloudinary": "^2.0.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
